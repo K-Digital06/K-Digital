@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K Digital — invitations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --ink:#000000;
+    --ink-soft:#1a1a1a;
+    --gold:#ffffff;
+    --gold-dark:#cfcfcf;
+    --gold-on-light:#000000;
+    --rose:#ffffff;
+    --rose-dark:#e0e0e0;
+    --rose-light:#f5f5f5;
+    --cream:#0a0a0a;
+    --cream-2:#262626;
+    --text-dark:#f5f5f5;
+    --text-dark-soft:#9e9e9e;
+    --text-light:#f5f5f5;
+    --text-light-soft:#9e9e9e;
+    --border-light:rgba(255,255,255,.14);
+    --border-dark:rgba(255,255,255,.12);
+
+    --seal-wedding:#707070;
+    --seal-birthday:#5c5c5c;
+    --seal-babyshower:#8a8a8a;
+    --seal-graduation:#4a4a4a;
+    --seal-anniversary:#6e6e6e;
+    --seal-engagement:#828282;
+    --seal-holiday:#565656;
+    --seal-retirement:#787878;
+    --seal-other:#000000;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--cream);color:var(--text-dark);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;}
+  a:focus-visible, button:focus-visible, input:focus-visible{
+    outline:2px solid var(--rose);outline-offset:2px;border-radius:4px;
+  }
+  h1,h2,h3{font-family:'Playfair Display',serif;margin:0;}
+  .shell{max-width:1180px;margin:0 auto;padding:0 28px;}
+  .eyebrow{font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);display:inline-flex;align-items:center;gap:7px;}
+  .eyebrow::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--rose);flex:none;}
+
+  /* ---------- nav ---------- */
+  .navbar{
+    position:sticky;top:0;z-index:40;
+    background:rgba(20,22,27,.86);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border-dark);
+  }
+  .navbar .shell{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;}
+  .nav-brand{display:flex;align-items:baseline;gap:8px;color:var(--text-light);}
+  .nav-brand .word{font-family:'Playfair Display',serif;font-weight:700;font-size:19px;}
+  .nav-brand .dot{color:var(--gold);}
+  .nav-links{display:flex;align-items:center;gap:30px;list-style:none;margin:0;padding:0;}
+  .nav-links a{font-size:13.5px;font-weight:600;color:var(--text-light-soft);transition:color .15s ease;}
+  .nav-links a:hover{color:var(--text-light);}
+  .nav-cta{
+    background:var(--gold);color:#000;font-size:13px;font-weight:700;padding:10px 18px;
+    border-radius:999px;border:none;cursor:pointer;transition:background .15s ease,transform .15s ease;
+  }
+  .nav-cta:hover{background:var(--gold-dark);transform:translateY(-1px);}
+  .nav-toggle{display:none;background:none;border:none;color:var(--text-light);cursor:pointer;}
+  .nav-mobile{display:none;flex-direction:column;gap:4px;background:var(--ink-soft);border-top:1px solid var(--border-dark);padding:14px 28px 18px;}
+  .nav-mobile.open{display:flex;}
+  .nav-mobile a{color:var(--text-light-soft);font-size:14px;font-weight:600;padding:8px 0;}
+
+  /* ---------- hero ---------- */
+  .hero{
+    position:relative;background:var(--ink);color:var(--text-light);overflow:hidden;
+    padding:90px 0 150px;
+  }
+  .hero-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.28;filter:saturate(.7);}
+  .hero-scrim{position:absolute;inset:0;background:
+    radial-gradient(ellipse at 15% 5%, rgba(255,255,255,.10), transparent 50%),
+    radial-gradient(ellipse at 85% 30%, rgba(255,255,255,.06), transparent 55%),
+    linear-gradient(180deg, rgba(13,11,22,.5), rgba(13,11,22,.94) 75%, var(--ink) 100%);
+  }
+  .hero .shell{position:relative;z-index:2;max-width:720px;}
+  .hero h1{font-size:56px;line-height:1.08;font-weight:600;letter-spacing:-.01em;}
+  .hero h1 em{color:var(--gold);font-style:italic;font-weight:600;}
+  .hero p.lede{margin:22px 0 30px;max-width:46ch;color:var(--text-light-soft);font-size:16px;line-height:1.7;}
+  .btn-gold{
+    display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:#000;font-weight:700;
+    font-size:14px;padding:14px 26px;border-radius:999px;border:none;cursor:pointer;transition:background .15s ease,transform .15s ease;
+  }
+  .btn-gold:hover{background:var(--gold-dark);transform:translateY(-1px);}
+
+  /* ---------- featured / carousel ---------- */
+  .featured{background:var(--cream);padding:70px 0 80px;}
+  .section-head{text-align:center;margin-bottom:34px;}
+  .section-head h2{font-size:34px;font-weight:600;margin-top:8px;color:var(--text-dark);}
+
+  .carousel-wrap{position:relative;}
+  .browse-all-row{display:flex;justify-content:center;align-items:center;gap:14px;margin-top:28px;flex-wrap:wrap;}
+  .browse-all-btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    background:transparent;color:var(--text-dark);border:1px solid var(--border-light);
+    border-radius:999px;padding:12px 26px;font-size:13.5px;font-weight:700;cursor:pointer;
+    transition:background .15s ease,border-color .15s ease;min-height:44px;box-sizing:border-box;
+  }
+  .browse-all-btn:hover{background:rgba(255,255,255,.06);border-color:var(--gold);}
+  .carousel-track{
+    display:flex;gap:22px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 4px 18px;
+    scrollbar-width:none;
+  }
+  .carousel-track::-webkit-scrollbar{display:none;}
+  .carousel-arrow{
+    position:absolute;top:40%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;
+    background:rgba(255,255,255,.07);border:1px solid var(--border-light);box-shadow:0 6px 18px -8px rgba(0,0,0,.5);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-dark);z-index:5;
+    transition:background .15s ease;
+  }
+  .carousel-arrow:hover{background:var(--cream-2);}
+  .carousel-arrow.prev{left:-14px;}
+  .carousel-arrow.next{right:-14px;}
+
+  .card{
+    flex:0 0 auto;width:270px;scroll-snap-align:start;
+    background:rgba(255,255,255,.05);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border-radius:12px;overflow:hidden;
+    border:1px solid var(--border-light);display:flex;flex-direction:column;
+    transition:transform .18s ease, box-shadow .18s ease, background .18s ease;
+  }
+  .card:hover{transform:translateY(-4px);box-shadow:0 20px 40px -18px rgba(0,0,0,.6);background:rgba(255,255,255,.08);}
+  .card-cover{aspect-ratio:4/3;position:relative;background:linear-gradient(150deg,var(--cream-2),#2a2340);overflow:hidden;}
+  .card-cover img{width:100%;height:100%;object-fit:cover;display:block;}
+  .card-cover .monogram{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:48px;font-style:italic;color:var(--text-light-soft);}
+  .price-badge{
+    position:absolute;top:10px;left:10px;background:var(--gold);color:#000;
+    font-size:12.5px;font-weight:700;padding:5px 11px;border-radius:999px;box-shadow:0 2px 5px rgba(0,0,0,.3);
+  }
+  .new-badge{
+    position:absolute;top:10px;right:10px;background:rgba(0,0,0,.65);color:#fff;
+    font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+    padding:4px 9px;border-radius:999px;border:1px solid rgba(255,255,255,.35);
+  }
+  .play-video-btn{
+    position:absolute;inset:0;margin:auto;width:44px;height:44px;border-radius:50%;
+    background:rgba(0,0,0,.55);color:#fff;border:1px solid rgba(255,255,255,.5);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;transition:background .15s ease,transform .15s ease;
+  }
+  .play-video-btn svg{margin-left:2px;}
+  .play-video-btn:hover{background:rgba(0,0,0,.75);transform:scale(1.06);}
+  .card-body{padding:16px 16px 6px;display:flex;flex-direction:column;gap:6px;flex:1;}
+  .card-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:600;color:var(--text-dark);}
+  .card-meta{font-size:11px;letter-spacing:.03em;text-transform:uppercase;color:var(--text-light-soft);font-weight:600;}
+  .card-note{font-size:12.5px;color:var(--text-dark-soft);line-height:1.4;}
+  .card-actions{padding:12px 16px 16px;margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .buy-btn{
+    display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:13px;color:#000;
+    background:var(--rose);padding:11px 16px;border-radius:999px;border:none;cursor:pointer;font-family:'Inter',sans-serif;
+    transition:background .15s ease,transform .15s ease;
+    min-height:44px;box-sizing:border-box;
+  }
+  .buy-btn:hover{background:var(--rose-dark);transform:translateY(-1px);}
+  .preview-link{font-size:12px;font-weight:600;color:var(--text-dark-soft);border-bottom:1px solid transparent;transition:color .15s ease,border-color .15s ease;padding:11px 4px;min-height:44px;display:inline-flex;align-items:center;}
+  .preview-link:hover{color:var(--text-dark);border-color:var(--gold);}
+
+  .empty{width:100%;text-align:center;padding:60px 20px;border:1px dashed var(--border-light);border-radius:12px;}
+  .empty h3{font-size:19px;font-weight:600;font-style:italic;}
+  .empty p{color:var(--text-dark-soft);font-size:13.5px;margin:8px 0 0;}
+
+  /* ---------- faq ---------- */
+  .faq{background:var(--cream);padding:70px 0 80px;border-top:1px solid var(--border-light);}
+  .faq-list{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
+  .faq-item{border:1px solid var(--border-light);border-radius:10px;overflow:hidden;background:rgba(255,255,255,.04);}
+  .faq-question{
+    width:100%;display:flex;align-items:center;justify-content:space-between;gap:16px;
+    background:none;border:none;cursor:pointer;padding:18px 20px;text-align:left;
+    font-family:'Inter',sans-serif;font-size:14.5px;font-weight:600;color:var(--text-dark);
+  }
+  .faq-question svg{flex:none;color:var(--text-light-soft);transition:transform .2s ease;}
+  .faq-item.open .faq-question svg{transform:rotate(180deg);}
+  .faq-answer{max-height:0;overflow:hidden;transition:max-height .25s ease;}
+  .faq-item.open .faq-answer{max-height:200px;}
+  .faq-answer p{margin:0;padding:0 20px 18px;font-size:13.5px;color:var(--text-dark-soft);line-height:1.6;}
+
+  /* ---------- footer ---------- */
+  footer.site-footer{background:var(--ink);color:var(--text-light);padding-top:60px;}
+  .footer-top{display:grid;grid-template-columns:1.2fr 1fr;gap:40px;align-items:center;padding-bottom:44px;border-bottom:1px solid var(--border-dark);}
+  .footer-top h2{font-size:30px;font-weight:600;line-height:1.2;}
+  .footer-top h2 em{color:var(--gold);font-style:italic;}
+  .footer-top p{color:var(--text-light-soft);font-size:14px;margin:14px 0 22px;max-width:44ch;}
+  .footer-right{display:flex;flex-direction:column;align-items:flex-end;gap:18px;text-align:right;}
+  .social-row{display:flex;gap:12px;}
+  .social-row a{
+    width:38px;height:38px;border-radius:50%;background:var(--ink-soft);border:1px solid var(--border-dark);
+    display:flex;align-items:center;justify-content:center;color:var(--text-light-soft);transition:color .15s ease,background .15s ease;
+  }
+  .social-row a:hover{color:var(--gold);background:rgba(255,255,255,.10);}
+  .footer-bottom{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:22px 0;color:var(--text-light-soft);font-size:12px;}
+  .footer-bottom .brand{display:flex;align-items:baseline;gap:6px;color:var(--text-light);font-family:'Playfair Display',serif;font-weight:700;font-size:15px;}
+  .footer-bottom .brand .dot{color:var(--gold);}
+
+  @media (max-width:860px){
+    .nav-links, .nav-cta{display:none;}
+    .nav-toggle{display:flex;}
+    .hero h1{font-size:36px;}
+    .footer-top{grid-template-columns:1fr;}
+    .footer-right{align-items:flex-start;text-align:left;}
+  }
+
+  @media (max-width:680px){
+    .shell{padding:0 18px;}
+    .navbar .shell{padding:14px 18px;}
+    .gallery{gap:16px;}
+    .card{width:230px;}
+    .carousel-arrow{display:none;}
+  }
+
+  @media (max-width:520px){
+    .hero{padding:56px 0 70px;}
+    .hero h1{font-size:30px;}
+    .hero p.lede{font-size:14.5px;}
+    .section-head h2{font-size:26px;}
+    .card{width:76vw;max-width:250px;}
+    .card-actions{flex-wrap:wrap;gap:8px;}
+    .buy-btn{width:100%;justify-content:center;}
+    .preview-link{width:100%;justify-content:center;border-bottom:none;}
+    .featured{padding-top:44px;padding-bottom:48px;}
+    .browse-all-row{margin-top:20px;}
+    .browse-all-btn{width:100%;}
+    .faq{padding:44px 0 56px;}
+    .faq-question{padding:15px 16px;font-size:13.5px;gap:10px;}
+    .faq-answer p{padding:0 16px 15px;font-size:13px;}
+    .new-badge, .price-badge{font-size:10.5px;padding:4px 8px;}
+    .footer-bottom{flex-direction:column;align-items:flex-start;gap:8px;}
+    .order-modal{padding:24px 20px 20px;}
+    .order-modal-head{padding-right:28px;}
+  }
+
+  @media (max-width:400px){
+    .hero h1{font-size:22px;}
+    .brand .word{font-size:17px;}
+    .browse-all-btn{width:100%;}
+  }
+
+  @media (prefers-reduced-motion:reduce){ *{scroll-behavior:auto !important;transition:none !important;animation:none !important;} }
+
+  /* ---------- order modal ---------- */
+  .overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:flex-start;justify-content:center;
+    padding:6vh 16px;overflow-y:auto;z-index:80;
+  }
+  .overlay.show{display:flex;}
+  .order-modal{
+    position:relative;width:100%;max-width:420px;background:var(--ink-soft);border:1px solid var(--border-light);
+    border-radius:14px;padding:30px 26px 26px;
+  }
+  .order-modal-close{
+    position:absolute;top:14px;right:14px;background:none;border:none;color:var(--text-dark-soft);cursor:pointer;
+    width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;
+  }
+  .order-modal-close:hover{color:var(--text-dark);background:rgba(255,255,255,.08);}
+  .order-modal-head{margin-bottom:20px;padding-right:20px;}
+  .order-modal-head h3{font-family:'Playfair Display',serif;font-size:21px;font-weight:600;color:var(--text-dark);margin-top:8px;}
+  .order-modal-price{font-size:14px;font-weight:700;color:var(--gold);margin-top:4px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:11.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--text-dark-soft);margin-bottom:6px;}
+  .field label .optional-tag{text-transform:none;font-weight:400;letter-spacing:0;}
+  .field input, .field textarea{
+    width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border-light);
+    background:rgba(255,255,255,.05);color:var(--text-dark);font-size:13.5px;font-family:'Inter',sans-serif;
+    box-sizing:border-box;
+  }
+  .field textarea{resize:vertical;min-height:70px;}
+  .field input::placeholder, .field textarea::placeholder{color:var(--text-light-soft);}
+  .field input:focus-visible, .field textarea:focus-visible{outline:2px solid var(--gold);outline-offset:1px;}
+  .order-submit-btn{
+    width:100%;background:var(--gold);color:#000;font-weight:700;font-size:14px;padding:13px 0;
+    border:none;border-radius:999px;cursor:pointer;min-height:44px;transition:background .15s ease;
+  }
+  .order-submit-btn:hover{background:var(--gold-dark);}
+  .order-form-note{font-size:11.5px;color:var(--text-light-soft);text-align:center;margin:12px 0 0;line-height:1.5;}
+  .order-success{display:none;text-align:center;padding:10px 4px 4px;}
+  .order-success.show{display:block;}
+  .order-success svg{color:var(--gold);margin-bottom:10px;}
+  .order-success h3{font-family:'Playfair Display',serif;font-size:19px;font-weight:600;color:var(--text-dark);margin-bottom:8px;}
+  .order-success p{font-size:13.5px;color:var(--text-dark-soft);line-height:1.5;margin:0 0 20px;}
+
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(8px);
+    background:var(--ink-soft);color:var(--text-dark);padding:11px 20px;border-radius:8px;font-size:13px;font-weight:600;
+    border:1px solid var(--border-light);opacity:0;pointer-events:none;transition:opacity .25s ease, transform .25s ease;z-index:90;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* ---------- motion ---------- */
+  .navbar{transition:box-shadow .2s ease;}
+  .navbar.scrolled{box-shadow:0 10px 26px -14px rgba(0,0,0,.6);}
+
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.16,.8,.3,1), transform .7s cubic-bezier(.16,.8,.3,1);}
+  .reveal.in-view{opacity:1;transform:none;}
+
+  .card-cover img{transition:transform .5s ease;}
+  .card:hover .card-cover img{transform:scale(1.06);}
+
+  @keyframes heroIn{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:none;}}
+  .hero .shell > *{opacity:0;animation:heroIn .8s cubic-bezier(.16,.8,.3,1) forwards;}
+  .hero .shell > *:nth-child(1){animation-delay:.05s;}
+  .hero .shell > *:nth-child(2){animation-delay:.15s;}
+  .hero .shell > *:nth-child(3){animation-delay:.25s;}
+  .hero .shell > *:nth-child(4){animation-delay:.35s;}
+
+  @media (prefers-reduced-motion:reduce){
+    .reveal{opacity:1 !important;transform:none !important;}
+    .hero .shell > *{animation:none !important;opacity:1 !important;}
+  }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="shell">
+    <a href="#hero" class="nav-brand"><span class="word">K Digital</span><span class="dot">.</span></a>
+    <ul class="nav-links">
+      <li><a href="#hero">Home</a></li>
+      <li><a href="#featured">Invitations</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <button class="nav-cta" onclick="document.getElementById('featured').scrollIntoView({behavior:'smooth'})">Shop Invitations</button>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="nav-mobile" id="navMobile">
+    <a href="#hero">Home</a>
+    <a href="#featured">Invitations</a>
+    <a href="#contact">Contact</a>
+  </div>
+</nav>
+
+<section class="hero" id="hero">
+  <div class="hero-bg" id="heroBg"></div>
+  <div class="hero-scrim"></div>
+  <div class="shell">
+    <h1 style="margin-top:14px;">Find The Perfect Invitation, <em>Ready</em> to Make Yours.</h1>
+    <p class="lede">Weddings, birthdays, baby showers, and more — browse a growing collection of web-based invitation templates, each ready to preview and buy today.</p>
+  </div>
+</section>
+
+<section class="featured" id="featured">
+  <div class="shell">
+    <div class="section-head reveal">
+      <h2>Shop Invitations</h2>
+    </div>
+
+    <div class="carousel-wrap">
+      <button class="carousel-arrow prev" id="prevBtn" aria-label="Scroll left">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div class="carousel-track" id="gallery"></div>
+      <button class="carousel-arrow next" id="nextBtn" aria-label="Scroll right">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+
+    <div class="browse-all-row">
+      <a href="invitations.html" class="browse-all-btn">Browse All Invitations
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="faq" id="faq">
+  <div class="shell">
+    <div class="section-head reveal">
+      <span class="eyebrow">Good to Know</span>
+      <h2>Frequently Asked Questions</h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item reveal">
+        <button class="faq-question" aria-expanded="false">
+          <span>How do I receive my invitation after ordering?</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="faq-answer"><p>Once you submit an order, we'll reach out using the contact details you provided to arrange payment and share your finished invitation link — usually within a day or two.</p></div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-question" aria-expanded="false">
+          <span>Can I customize the names, date, and venue myself?</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="faq-answer"><p>Yes — just include your details in the order message, or we'll follow up to collect them. Every invitation is personalized before it's delivered.</p></div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-question" aria-expanded="false">
+          <span>Can guests view the invitation on their phones?</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="faq-answer"><p>Every invitation is web-based and works on any phone, tablet, or computer — guests just open the link, no app required.</p></div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-question" aria-expanded="false">
+          <span>What if I don't see an invitation I like?</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="faq-answer"><p>Reach out through any of the contact links in the footer — custom invitations designed just for your event are available too.</p></div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-question" aria-expanded="false">
+          <span>Is my payment handled securely?</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="faq-answer"><p>Payment is arranged directly with us after your order request, using whichever method works best for you — details are confirmed before anything is charged.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer" id="contact">
+  <div class="shell">
+    <div class="footer-top">
+      <div class="reveal">
+        <h2>Want something <em>custom made?</em></h2>
+        <p>Browse the collection for something ready to go, or reach out if you'd like an invitation designed just for your event.</p>
+      </div>
+      <div class="footer-right reveal" style="transition-delay:.1s;">
+        <span class="eyebrow">Get in Touch</span>
+        <div class="social-row">
+          <a href="https://facebook.com/yourpage" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.5 9.95v-7.04H7.9V12h2.6V9.8c0-2.6 1.55-4 3.9-4 1.13 0 2.3.2 2.3.2v2.5h-1.3c-1.28 0-1.68.8-1.68 1.6V12h2.86l-.46 2.91h-2.4v7.04A10 10 0 0 0 22 12z"/></svg>
+          </a>
+          <a href="https://instagram.com/yourhandle" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+          </a>
+          <a href="https://tiktok.com/@yourhandle" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 2c.3 2.1 1.8 3.9 4 4.4v3.1a7.6 7.6 0 0 1-4-1.2v6.9a6.4 6.4 0 1 1-6.4-6.4c.3 0 .6 0 .9.1v3.2a3.2 3.2 0 1 0 2.3 3.1V2h3.2z"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="brand">K Digital<span class="dot">.</span></div>
+      <div>© 2026 K Digital. An invitation marketplace.</div>
+    </div>
+  </div>
+</footer>
+
+<div class="overlay" id="orderOverlay">
+  <div class="order-modal">
+    <button type="button" class="order-modal-close" id="orderModalClose" aria-label="Close">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="order-modal-head">
+      <span class="eyebrow">Order request</span>
+      <h3 id="orderModalTitle">Invitation title</h3>
+      <div class="order-modal-price" id="orderModalPrice"></div>
+    </div>
+    <form id="orderForm">
+      <div class="field">
+        <label for="orderName">Your name</label>
+        <input type="text" id="orderName" placeholder="Juan Dela Cruz" required>
+      </div>
+      <div class="field">
+        <label for="orderEmail">Email</label>
+        <input type="email" id="orderEmail" placeholder="you@email.com" required>
+      </div>
+      <div class="field">
+        <label for="orderPhone">Phone</label>
+        <input type="tel" id="orderPhone" placeholder="09XX XXX XXXX" required>
+      </div>
+      <div class="field">
+        <label for="orderAltContact">TikTok, Facebook, or Telegram</label>
+        <input type="text" id="orderAltContact" placeholder="@handle or profile link" required>
+      </div>
+      <div class="field">
+        <label for="orderMessage">Message <span class="optional-tag">(optional)</span></label>
+        <textarea id="orderMessage" placeholder="Event date, guest count, any details you'd like to share…"></textarea>
+      </div>
+      <button type="submit" class="order-submit-btn" id="orderSubmitBtn">Submit request</button>
+      <p class="order-form-note">We'll reach out using the contact info above to arrange payment and delivery.</p>
+    </form>
+    <div class="order-success" id="orderSuccess">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+      <h3>Request sent</h3>
+      <p>Thanks — we'll be in touch shortly to sort out the details.</p>
+      <button type="button" class="order-submit-btn" id="orderDoneBtn">Done</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   CONFIG — fill these in before deploying (see README.md)
+   Must match the values you used in admin.html.
+   ============================================================ */
+const SUPABASE_URL = "https://yldgzhywfjvqxctmsvdy.supabase.co";       // e.g. https://xxxxx.supabase.co
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlsZGd6aHl3Zmp2cXhjdG1zdmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2MTkxODksImV4cCI6MjEwMDE5NTE4OX0.ueBO8oZ0IQDJRZrw2rAMO4Tz5Czrn8WKppwknnO8yRg";
+/* ============================================================ */
+
+(function(){
+  // ---------- setup check ----------
+  if(SUPABASE_URL.includes('YOUR_SUPABASE_URL') || SUPABASE_ANON_KEY.includes('YOUR_SUPABASE_ANON_KEY')){
+    document.body.innerHTML = `<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#14161b;color:#f5f1e8;font-family:Inter,sans-serif;padding:40px;text-align:center;">
+      <div style="max-width:480px;">
+        <h1 style="font-size:20px;margin-bottom:12px;">Almost there</h1>
+        <p style="color:#b7b0a0;font-size:14px;line-height:1.6;">This page needs your Supabase project URL and anon key before it will work. Open this file, find the CONFIG section near the top of the script, and fill in <code>SUPABASE_URL</code> and <code>SUPABASE_ANON_KEY</code>. See README.md for step-by-step instructions.</p>
+      </div>
+    </div>`;
+    return;
+  }
+
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const OCCASIONS = [
+    {key:'wedding', label:'Wedding', seal:'var(--seal-wedding)', mono:'W', desc:'Save-the-dates and full wedding sites.'},
+    {key:'birthday', label:'Birthday', seal:'var(--seal-birthday)', mono:'B', desc:'Milestone birthdays and casual celebrations.'},
+    {key:'babyshower', label:'Baby Shower', seal:'var(--seal-babyshower)', mono:'S', desc:'Welcoming new arrivals in style.'},
+    {key:'graduation', label:'Graduation', seal:'var(--seal-graduation)', mono:'G', desc:'Celebrating the next chapter.'},
+    {key:'anniversary', label:'Anniversary', seal:'var(--seal-anniversary)', mono:'A', desc:'Marking years worth celebrating.'},
+    {key:'engagement', label:'Engagement', seal:'var(--seal-engagement)', mono:'E', desc:'The first announcement of many.'},
+    {key:'holiday', label:'Holiday', seal:'var(--seal-holiday)', mono:'H', desc:'Seasonal gatherings and parties.'},
+    {key:'retirement', label:'Retirement', seal:'var(--seal-retirement)', mono:'R', desc:'Toasting a well-earned new chapter.'},
+    {key:'other', label:'Other', seal:'var(--seal-other)', mono:'✦', desc:'Anything that does not fit above.'}
+  ];
+  const occMap = Object.fromEntries(OCCASIONS.map(o=>[o.key,o]));
+
+  let invites = [];
+  let activeTab = 'all';
+  let searchTerm = '';
+
+  const galleryEl = document.getElementById('gallery');
+  const tabsEl = document.getElementById('tabs');
+  const heroBgEl = document.getElementById('heroBg');
+
+  function escapeHtml(s){ return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+  function escapeAttr(s){ return escapeHtml(s); }
+
+  // ---------- motion: reveal-on-scroll ----------
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const revealObserver = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        entry.target.classList.add('in-view');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  function observeReveal(root){
+    (root || document).querySelectorAll('.reveal:not(.in-view)').forEach(el=> revealObserver.observe(el));
+  }
+
+  // ---------- motion: nav scroll shadow ----------
+  const navbarEl = document.querySelector('.navbar');
+  window.addEventListener('scroll', ()=>{
+    navbarEl.classList.toggle('scrolled', window.scrollY > 12);
+  }, { passive: true });
+
+  // ---------- nav mobile toggle ----------
+  const navToggle = document.getElementById('navToggle');
+  const navMobile = document.getElementById('navMobile');
+  navToggle.addEventListener('click', ()=> navMobile.classList.toggle('open'));
+  navMobile.querySelectorAll('a').forEach(a=> a.addEventListener('click', ()=> navMobile.classList.remove('open')));
+
+  // catch all static reveal elements already in the DOM
+  observeReveal(document);
+
+  // ---------- faq accordion ----------
+  document.querySelectorAll('.faq-item').forEach(item=>{
+    const btn = item.querySelector('.faq-question');
+    btn.addEventListener('click', ()=>{
+      const isOpen = item.classList.contains('open');
+      item.classList.toggle('open', !isOpen);
+      btn.setAttribute('aria-expanded', String(!isOpen));
+    });
+  });
+
+  // ---------- carousel arrows ----------
+  document.getElementById('prevBtn').addEventListener('click', ()=>{
+    galleryEl.scrollBy({ left: -300, behavior: 'smooth' });
+  });
+  document.getElementById('nextBtn').addEventListener('click', ()=>{
+    galleryEl.scrollBy({ left: 300, behavior: 'smooth' });
+  });
+
+  // ---------- data ----------
+  function rowToInvite(row){
+    return {
+      id: row.id, title: row.title, occasion: row.occasion, customOccasion: row.custom_occasion || '',
+      eventDate: row.event_date, link: row.link, price: row.price, buyLink: row.buy_link,
+      note: row.note, coverImage: row.cover_image, videoUrl: row.video_url,
+      createdAt: row.created_at ? new Date(row.created_at).getTime() : 0
+    };
+  }
+  async function loadData(){
+    const { data, error } = await sb.from('invitations').select('*').order('created_at', { ascending: false });
+    if(error){ console.error(error); invites = []; }
+    else invites = (data || []).map(rowToInvite);
+    render();
+  }
+
+  function occasionLabel(inv){
+    if(inv.occasion === 'other' && inv.customOccasion) return inv.customOccasion;
+    return occMap[inv.occasion] ? occMap[inv.occasion].label : 'Other';
+  }
+  function formatDate(d){
+    if(!d) return '';
+    const dt = new Date(d + 'T00:00:00');
+    if(isNaN(dt)) return '';
+    return dt.toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'});
+  }
+
+  function render(){
+    let list = invites.slice().sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
+    if(activeTab !== 'all') list = list.filter(i => i.occasion === activeTab);
+    if(searchTerm){
+      const q = searchTerm.toLowerCase();
+      list = list.filter(i => (i.title||'').toLowerCase().includes(q) || (i.note||'').toLowerCase().includes(q));
+    }
+
+    // set hero background from most recent invite with a cover image, if any
+    const withCover = invites.find(i => i.coverImage);
+    if(withCover && !heroBgEl.dataset.set){
+      heroBgEl.style.backgroundImage = `url(${withCover.coverImage})`;
+      heroBgEl.dataset.set = 'yes';
+    }
+
+    if(list.length === 0){
+      let heading, sub;
+      if(invites.length === 0){
+        heading = 'Nothing here yet';
+        sub = 'Check back soon — invitations will appear here once they\'re added.';
+      } else if(searchTerm){
+        heading = 'No matches';
+        sub = `Nothing found for "${escapeHtml(searchTerm)}".`;
+      } else {
+        heading = `No ${escapeHtml(occMap[activeTab] ? occMap[activeTab].label.toLowerCase() : 'matching')} invitations yet`;
+        sub = 'Try another tab, or check back later.';
+      }
+      galleryEl.innerHTML = `<div class="empty"><h3>${heading}</h3><p>${sub}</p></div>`;
+      return;
+    }
+
+    galleryEl.innerHTML = list.map((inv,idx)=>cardHtml(inv,idx)).join('');
+    observeReveal(galleryEl);
+    galleryEl.querySelectorAll('.order-trigger').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const inv = invites.find(i=>i.id===btn.dataset.id);
+        if(inv) openOrderModal(inv);
+      });
+    });
+    galleryEl.querySelectorAll('.play-video-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const coverEl = btn.closest('[data-cover]');
+        if(!coverEl) return;
+        coverEl.innerHTML = `<video src="${btn.dataset.video}" controls autoplay playsinline style="width:100%;height:100%;object-fit:cover;"></video>`;
+      });
+    });
+  }
+
+  function formatPrice(p){
+    const n = Number(p);
+    if(isNaN(n)) return '';
+    return '₱' + n.toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }
+
+  function cardHtml(inv, idx){
+    const cover = inv.coverImage
+      ? `<img src="${inv.coverImage}" alt="">`
+      : `<div class="monogram">${escapeHtml((inv.title||'?').trim().charAt(0).toUpperCase())}</div>`;
+    const isNew = inv.createdAt && (Date.now() - inv.createdAt) < 1000*60*60*24*14;
+    return `
+    <div class="card reveal" data-id="${inv.id}" style="transition-delay:${Math.min(idx,6)*0.06}s;">
+      <div class="card-cover" data-cover>
+        ${cover}
+        ${inv.price != null ? `<div class="price-badge">${formatPrice(inv.price)}</div>` : ''}
+        ${isNew ? `<div class="new-badge">New</div>` : ''}
+        ${inv.videoUrl ? `<button type="button" class="play-video-btn" data-video="${escapeAttr(inv.videoUrl)}" aria-label="Play sample video"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg></button>` : ''}
+      </div>
+      <div class="card-body">
+        <div class="card-title">${escapeHtml(inv.title)}</div>
+        <div class="card-meta">${escapeHtml(occasionLabel(inv))}${inv.eventDate ? ' · ' + formatDate(inv.eventDate) : ''}</div>
+        ${inv.note ? `<div class="card-note">${escapeHtml(inv.note)}</div>` : ''}
+      </div>
+      <div class="card-actions">
+        <button type="button" class="buy-btn order-trigger" data-id="${inv.id}">Order now</button>
+        ${inv.link ? `<a class="preview-link" href="${escapeAttr(inv.link)}" target="_blank" rel="noopener noreferrer">Preview</a>` : ''}
+      </div>
+    </div>`;
+  }
+
+  // ---------- toast ----------
+  const toastEl = document.getElementById('toast');
+  function showToast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(()=>toastEl.classList.remove('show'), 2800);
+  }
+
+  // ---------- order modal ----------
+  const orderOverlayEl = document.getElementById('orderOverlay');
+  const orderFormEl = document.getElementById('orderForm');
+  const orderSuccessEl = document.getElementById('orderSuccess');
+  let currentOrderInvite = null;
+
+  function openOrderModal(inv){
+    currentOrderInvite = inv;
+    document.getElementById('orderModalTitle').textContent = inv.title;
+    document.getElementById('orderModalPrice').textContent = inv.price != null ? formatPrice(inv.price) : '';
+    orderFormEl.reset();
+    orderFormEl.style.display = 'block';
+    orderSuccessEl.classList.remove('show');
+    orderOverlayEl.classList.add('show');
+    document.getElementById('orderName').focus();
+  }
+  function closeOrderModal(){
+    orderOverlayEl.classList.remove('show');
+    currentOrderInvite = null;
+  }
+  document.getElementById('orderModalClose').addEventListener('click', closeOrderModal);
+  document.getElementById('orderDoneBtn').addEventListener('click', closeOrderModal);
+  orderOverlayEl.addEventListener('click', (e)=>{ if(e.target === orderOverlayEl) closeOrderModal(); });
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape' && orderOverlayEl.classList.contains('show')) closeOrderModal();
+  });
+
+  orderFormEl.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    if(!currentOrderInvite) return;
+    const submitBtn = document.getElementById('orderSubmitBtn');
+    const payload = {
+      invitation_id: currentOrderInvite.id,
+      invitation_title: currentOrderInvite.title,
+      invitation_price: currentOrderInvite.price != null ? currentOrderInvite.price : null,
+      invitation_occasion: occasionLabel(currentOrderInvite),
+      invitation_link: currentOrderInvite.link || null,
+      customer_name: document.getElementById('orderName').value.trim(),
+      customer_email: document.getElementById('orderEmail').value.trim(),
+      customer_phone: document.getElementById('orderPhone').value.trim(),
+      alt_contact: document.getElementById('orderAltContact').value.trim(),
+      message: document.getElementById('orderMessage').value.trim() || null
+    };
+    if(!payload.customer_name || !payload.customer_email || !payload.customer_phone || !payload.alt_contact){
+      showToast('Name, email, phone, and a social contact are all required');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending…';
+    const { error } = await sb.from('orders').insert(payload);
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit request';
+
+    if(error){
+      console.error(error);
+      showToast("Couldn't send your request — try again");
+      return;
+    }
+    orderFormEl.style.display = 'none';
+    orderSuccessEl.classList.add('show');
+  });
+
+  loadData();
+})();
+</script>
+</body>
+</html>

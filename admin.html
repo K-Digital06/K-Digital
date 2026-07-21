@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K Digital — admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --ink:#000000;
+    --ink-2:#141414;
+    --ink-3:#1f1f1f;
+    --paper:#141414;
+    --paper-dim:#1f1f1f;
+    --gold:#ffffff;
+    --ink-text:#f5f5f5;
+    --paper-text:#f5f5f5;
+    --paper-text-dim:#9e9e9e;
+    --danger:#e0685a;
+
+    --seal-wedding:#707070;
+    --seal-birthday:#5c5c5c;
+    --seal-babyshower:#8a8a8a;
+    --seal-graduation:#4a4a4a;
+    --seal-anniversary:#6e6e6e;
+    --seal-engagement:#828282;
+    --seal-holiday:#565656;
+    --seal-retirement:#787878;
+    --seal-other:#2b2b2b;
+
+    --radius:6px;
+    --shadow-card: 0 1px 2px rgba(0,0,0,.4), 0 8px 20px -8px rgba(0,0,0,.6);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--ink);
+    background-image:
+      radial-gradient(ellipse at top left, rgba(255,255,255,.05), transparent 55%),
+      radial-gradient(ellipse at bottom right, rgba(255,255,255,.04), transparent 55%);
+    color:var(--paper-text);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+
+  a{color:inherit;}
+  button{font-family:inherit;}
+
+  h1,h2,h3{font-family:'Playfair Display',serif;margin:0;}
+
+  /* ---------- login screen ---------- */
+  .login-screen{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+  }
+  .login-box{
+    width:100%;max-width:360px;background:#111111;border:1px solid rgba(255,255,255,.12);
+    border-radius:12px;padding:34px 30px 30px;text-align:center;
+  }
+  .login-box h1{font-size:24px;font-weight:600;}
+  .login-box .dot{color:var(--gold);}
+  .login-sub{font-size:12.5px;color:var(--paper-text-dim);margin:6px 0 24px;}
+  .login-box .field{text-align:left;}
+  .login-error{font-size:12.5px;color:var(--danger);margin:12px 0 0;min-height:16px;}
+
+  .eyebrow{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--gold);
+  }
+
+  /* ---------- layout shell ---------- */
+  .shell{max-width:1120px;margin:0 auto;padding:0 28px;}
+
+  /* ---------- header ---------- */
+  header.top{
+    padding:28px 0 10px;
+  }
+  .top-row{
+    display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:baseline;gap:10px;}
+  .brand h1{font-size:26px;font-weight:600;letter-spacing:-.01em;}
+  .brand .dot{color:var(--gold);}
+  .brand-tag{
+    font-size:12px;color:var(--paper-text-dim);
+  }
+
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    border-radius:999px;border:1px solid rgba(255,255,255,.18);
+    background:transparent;color:var(--paper-text);
+    padding:10px 18px;font-size:14px;font-weight:600;cursor:pointer;
+    transition:background .15s ease, border-color .15s ease, transform .15s ease;
+  }
+  .btn:hover{border-color:rgba(255,255,255,.4);}
+  .btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+  .btn-primary{
+    background:var(--gold);border-color:var(--gold);color:#000;
+  }
+  .btn-primary:hover{background:#d6d6d6;transform:translateY(-1px);}
+  .btn-ghost{border-color:transparent;color:var(--paper-text-dim);padding:10px 12px;}
+  .btn-ghost:hover{color:var(--paper-text);}
+  .btn-danger{color:var(--danger);}
+
+  /* ---------- hero ---------- */
+  .hero{
+    display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;
+    padding:46px 0 54px;
+  }
+  .hero h2{
+    font-size:44px;line-height:1.08;font-weight:600;letter-spacing:-.01em;
+    max-width:11ch;
+  }
+  .hero h2 em{color:var(--gold);font-style:italic;font-weight:500;}
+  .hero p.lede{
+    margin:18px 0 26px;max-width:44ch;color:var(--paper-text-dim);font-size:15.5px;line-height:1.6;
+  }
+  .hero-actions{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+  .hero-stat{
+    font-size:12px;color:var(--paper-text-dim);
+  }
+  .hero-stat b{color:var(--paper-text);font-weight:700;}
+
+  /* fanned decorative cards */
+  .fan{position:relative;height:280px;}
+  .fan-card{
+    position:absolute;width:168px;height:224px;top:20px;left:50%;
+    background:rgba(255,255,255,.05);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border:1px solid rgba(255,255,255,.14);border-radius:10px;box-shadow:var(--shadow-card);
+    transform-origin:bottom center;
+    padding:18px 16px;color:var(--ink-text);
+    display:flex;flex-direction:column;justify-content:space-between;
+  }
+  .fan-card .seal{
+    width:34px;height:34px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:700;color:#000;
+    background:var(--gold);
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.15), 0 2px 4px rgba(0,0,0,.3);
+    align-self:flex-end;
+  }
+  .fan-card .fan-label{font-family:'Playfair Display',serif;font-style:italic;font-size:15px;line-height:1.25;}
+  .fan-card .fan-sub{font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--paper-text-dim);}
+  .fan-1{transform:translateX(-142px) rotate(-13deg);}
+  .fan-2{transform:translateX(-52px) rotate(-4deg);z-index:2;}
+  .fan-3{transform:translateX(38px) rotate(6deg);z-index:3;}
+  .fan-4{transform:translateX(122px) rotate(15deg);z-index:1;}
+
+  /* ---------- controls ---------- */
+  .controls{
+    display:flex;align-items:center;justify-content:space-between;gap:20px;
+    padding:8px 0 20px;border-bottom:1px solid rgba(255,255,255,.1);
+    flex-wrap:wrap;
+  }
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;}
+  .tab{
+    font-size:11.5px;font-weight:600;letter-spacing:.03em;
+    padding:8px 13px;border-radius:999px;
+    background:rgba(255,255,255,.05);color:var(--paper-text-dim);
+    border:1px solid rgba(255,255,255,.1);
+    cursor:pointer;transition:background .15s ease,color .15s ease;
+  }
+  .tab:hover{color:var(--paper-text);}
+  .tab.active{background:var(--gold);color:#000;font-weight:700;border-color:transparent;}
+  .search{
+    display:flex;align-items:center;gap:8px;
+    background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+    border-radius:999px;padding:8px 14px;min-width:220px;
+  }
+  .search input{
+    background:transparent;border:none;outline:none;color:var(--paper-text);
+    font-size:13.5px;width:100%;font-family:'Inter',sans-serif;
+  }
+  .search input::placeholder{color:var(--paper-text-dim);}
+  .search svg{flex:none;opacity:.6;}
+
+  /* ---------- gallery ---------- */
+  .gallery{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+    gap:22px;padding:30px 0 70px;
+  }
+  .card{
+    background:rgba(255,255,255,.05);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border-radius:12px;box-shadow:var(--shadow-card);
+    border:1px solid rgba(255,255,255,.14);
+    overflow:hidden;display:flex;flex-direction:column;color:var(--ink-text);
+    transition:transform .18s ease, box-shadow .18s ease, background .18s ease;
+    position:relative;
+  }
+  .card:hover{transform:translateY(-4px);box-shadow:0 20px 40px -18px rgba(0,0,0,.7);background:rgba(255,255,255,.08);}
+  .card-cover{
+    height:150px;position:relative;background:linear-gradient(150deg,var(--paper-dim),#2a2a2a);
+    display:flex;align-items:center;justify-content:center;overflow:hidden;
+  }
+  .card-cover img{width:100%;height:100%;object-fit:cover;display:block;}
+  .card-cover .monogram{
+    font-family:'Playfair Display',serif;font-size:56px;font-style:italic;color:var(--paper-text-dim);
+  }
+  .seal-badge{
+    position:absolute;top:10px;right:10px;width:38px;height:38px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:700;color:#fff;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.3), 0 2px 5px rgba(0,0,0,.35);
+  }
+  .price-badge{
+    position:absolute;top:10px;left:10px;background:var(--gold);color:#000;
+    font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px;
+    box-shadow:0 2px 5px rgba(0,0,0,.3);
+  }
+  .video-badge{
+    position:absolute;bottom:10px;left:10px;display:inline-flex;align-items:center;gap:5px;
+    background:rgba(0,0,0,.7);color:#fff;font-size:11px;font-weight:700;padding:4px 9px;
+    border-radius:999px;text-decoration:none;border:1px solid rgba(255,255,255,.3);
+  }
+  .video-badge:hover{background:rgba(0,0,0,.88);}
+  .card-body{padding:16px 16px 14px;display:flex;flex-direction:column;gap:6px;flex:1;}
+  .card-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:600;line-height:1.25;}
+  .card-meta{
+    font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;
+    color:var(--paper-text-dim);
+  }
+  .card-note{font-size:13px;color:#b8b3c9;line-height:1.45;margin-top:2px;}
+  .card-actions{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    padding:12px 16px 14px;border-top:1px solid rgba(255,255,255,.08);margin-top:auto;
+  }
+  .open-link{
+    display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:13px;
+    color:var(--ink-text);text-decoration:none;
+  }
+  .open-link:hover{color:var(--gold);}
+  .icon-btn{
+    background:none;border:none;cursor:pointer;color:var(--paper-text-dim);padding:4px;
+    display:flex;align-items:center;justify-content:center;border-radius:6px;
+    min-width:32px;min-height:32px;
+  }
+  .icon-btn:hover{color:var(--ink-text);}
+  .icon-btn:focus-visible{outline:2px solid var(--gold);}
+
+  /* ---------- empty state ---------- */
+  .empty{
+    grid-column:1/-1;text-align:center;padding:70px 20px;
+    border:1px dashed rgba(255,255,255,.18);border-radius:8px;
+  }
+  .empty h3{font-size:22px;font-weight:500;font-style:italic;color:var(--paper-text);}
+  .empty p{color:var(--paper-text-dim);font-size:14px;margin:10px 0 22px;}
+
+  /* ---------- modal ---------- */
+  .overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(2px);
+    display:none;align-items:flex-start;justify-content:center;
+    padding:5vh 16px;overflow-y:auto;z-index:50;
+  }
+  .overlay.show{display:flex;}
+  .modal{
+    background:#111111;color:var(--ink-text);border-radius:12px;
+    border:1px solid rgba(255,255,255,.12);
+    width:100%;max-width:480px;padding:30px 30px 26px;box-shadow:0 30px 60px -20px rgba(0,0,0,.8);
+  }
+  .modal.wide{max-width:640px;}
+  .orders-badge{
+    position:absolute;top:-7px;right:-7px;background:var(--danger);color:#fff;
+    font-size:10.5px;font-weight:700;min-width:18px;height:18px;border-radius:999px;
+    display:flex;align-items:center;justify-content:center;padding:0 5px;
+    box-shadow:0 0 0 2px var(--ink);
+  }
+  .orders-list{display:flex;flex-direction:column;gap:12px;max-height:56vh;overflow-y:auto;padding-right:4px;margin-bottom:6px;}
+  .order-row{border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:14px 16px;background:rgba(255,255,255,.04);}
+  .order-row-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px;}
+  .order-row-inv{font-weight:700;font-size:14.5px;color:var(--ink-text);}
+  .order-row-price{font-size:12px;color:var(--paper-text-dim);margin-top:2px;}
+  .order-row-date{font-size:10.5px;color:var(--paper-text-dim);white-space:nowrap;}
+  .order-row-contact{font-size:13px;color:#cfcfcf;line-height:1.6;margin-bottom:8px;}
+  .order-row-contact a{color:var(--gold);font-weight:600;}
+  .order-row-message{font-size:12.5px;color:#b0b0b0;background:rgba(255,255,255,.05);border-radius:6px;padding:8px 10px;line-height:1.5;margin-bottom:10px;}
+  .order-row-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .order-status-select{
+    font-size:12px;font-weight:600;padding:6px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.16);
+    background:#1a1a1a;color:var(--paper-text);font-family:'Inter',sans-serif;
+  }
+  .order-delete-btn{background:none;border:none;color:var(--paper-text-dim);cursor:pointer;padding:5px;border-radius:6px;display:flex;}
+  .order-delete-btn:hover{color:var(--danger);}
+  .modal h3{font-size:22px;font-weight:600;margin-bottom:4px;}
+  .modal .modal-sub{font-size:11px;color:var(--paper-text-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:20px;}
+  .field{margin-bottom:16px;}
+  .field label{
+    display:block;font-size:10.5px;font-weight:700;margin-bottom:6px;color:var(--paper-text-dim);
+    letter-spacing:.02em;text-transform:uppercase;
+  }
+  .field input[type=text],.field input[type=date],.field input[type=url],.field input[type=number],.field input[type=email],.field input[type=tel],.field select,.field textarea{
+    width:100%;padding:10px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.16);
+    background:#1a1a1a;color:var(--ink-text);font-size:14px;font-family:'Inter',sans-serif;
+  }
+  .field textarea{resize:vertical;min-height:60px;}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .file-row{display:flex;align-items:center;gap:12px;}
+  .file-preview{
+    width:56px;height:56px;border-radius:6px;background:var(--paper-dim);flex:none;
+    display:flex;align-items:center;justify-content:center;overflow:hidden;
+    font-family:'Playfair Display',serif;font-style:italic;color:var(--paper-text-dim);font-size:22px;
+  }
+  .file-preview img{width:100%;height:100%;object-fit:cover;}
+  .file-btn{
+    font-size:12.5px;font-weight:600;padding:8px 12px;border-radius:6px;
+    border:1px solid rgba(255,255,255,.16);background:#1a1a1a;cursor:pointer;color:var(--paper-text-dim);
+  }
+  .file-btn:hover{background:#262626;color:var(--paper-text);}
+  .hint{font-size:11.5px;color:var(--paper-text-dim);margin-top:5px;}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px;}
+  .modal-btn{
+    padding:10px 18px;border-radius:999px;font-size:13.5px;font-weight:700;cursor:pointer;border:1px solid transparent;
+  }
+  .modal-btn.cancel{background:transparent;border-color:rgba(255,255,255,.16);color:var(--paper-text-dim);}
+  .modal-btn.cancel:hover{background:rgba(255,255,255,.06);color:var(--paper-text);}
+  .modal-btn.save{background:var(--gold);color:#000;}
+  .modal-btn.save:hover{background:#d6d6d6;}
+
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(8px);
+    background:#1a1a1a;color:var(--paper-text);padding:11px 20px;border-radius:999px;
+    font-size:13px;font-weight:600;box-shadow:0 10px 30px -8px rgba(0,0,0,.7);
+    border:1px solid rgba(255,255,255,.15);
+    opacity:0;pointer-events:none;transition:opacity .25s ease, transform .25s ease;
+    z-index:60;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  footer{padding:26px 0 40px;text-align:center;color:var(--paper-text-dim);font-size:12px;}
+
+  @media (max-width:760px){
+    .hero{grid-template-columns:1fr;}
+    .fan{display:none;}
+    .hero h2{font-size:34px;max-width:none;}
+    .field-row{grid-template-columns:1fr;}
+  }
+
+  @media (max-width:680px){
+    .shell{padding:0 16px;}
+    .top-row{gap:12px;}
+    .brand h1{font-size:22px;}
+    .top-actions{width:100%;}
+    .top-actions .btn{flex:1;justify-content:center;}
+    .controls{flex-direction:column;align-items:stretch;gap:14px;}
+    .search{width:100%;min-width:0;}
+    .gallery{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;}
+    .card-body{padding:12px 12px 10px;}
+    .card-actions{padding:10px 12px 12px;}
+    .modal{padding:22px 20px 20px;}
+    .modal.wide{max-width:100%;}
+    .orders-list{max-height:60vh;}
+    .order-row-top{flex-direction:column;gap:4px;}
+    .order-row-date{align-self:flex-start;}
+  }
+
+  @media (max-width:460px){
+    .hero h2{font-size:28px;}
+    .hero p.lede{font-size:14px;}
+    .btn-primary, .btn{font-size:13px;padding:9px 14px;}
+    .card-title{font-size:16px;}
+    .order-row-actions{flex-wrap:wrap;gap:8px;}
+    .order-status-select{flex:1;min-width:110px;}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important;animation:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <h1>K Digital<span class="dot">.</span></h1>
+    <p class="login-sub">Admin login</p>
+    <form id="loginForm">
+      <div class="field">
+        <label for="loginEmail">Email</label>
+        <input type="email" id="loginEmail" placeholder="you@email.com" required autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="modal-btn save" id="loginSubmitBtn" style="width:100%;">Log in</button>
+      <p class="login-error" id="loginError"></p>
+    </form>
+  </div>
+</div>
+
+<div id="adminApp" style="display:none;">
+
+<div class="shell">
+  <header class="top">
+    <div class="top-row">
+      <div class="brand">
+        <h1>K Digital<span class="dot">.</span></h1>
+        <span class="brand-tag">— admin · manage your invitations</span>
+      </div>
+      <button class="btn" id="openOrdersBtn" style="position:relative;">
+        Orders
+        <span id="ordersBadge" class="orders-badge" style="display:none;">0</span>
+      </button>
+      <button class="btn btn-primary" id="openAddBtn">+ New invitation</button>
+      <button class="btn" id="logoutBtn">Log out</button>
+    </div>
+    <p style="font-family:'Space Mono',monospace;font-size:11px;color:var(--paper-text-dim);margin:14px 0 0;">This is the admin page — anything you add here shows up on the viewer page. Keep this link for yourself; share the viewer page with guests.</p>
+  </header>
+
+  <section class="hero">
+    <div>
+      <span class="eyebrow">Personal showcase</span>
+      <h2 style="margin-top:10px;">Keep every invite you've <em>ever</em> made.</h2>
+      <p class="lede">One place for the wedding sites, the birthday pages, the baby-shower invites — every web-based invitation you've designed, filed by occasion and ready to share.</p>
+      <div class="hero-actions">
+        <span class="hero-stat" id="heroStat"><b>0</b> saved · <b>0</b> occasions</span>
+      </div>
+    </div>
+    <div class="fan" aria-hidden="true">
+      <div class="fan-card fan-1">
+        <div class="seal" style="background:var(--seal-wedding);">W</div>
+        <div><div class="fan-label">You're<br>invited</div><div class="fan-sub">Wedding</div></div>
+      </div>
+      <div class="fan-card fan-2">
+        <div class="seal" style="background:var(--seal-birthday);">B</div>
+        <div><div class="fan-label">Come<br>celebrate</div><div class="fan-sub">Birthday</div></div>
+      </div>
+      <div class="fan-card fan-3">
+        <div class="seal" style="background:var(--seal-babyshower);">S</div>
+        <div><div class="fan-label">Baby<br>shower</div><div class="fan-sub">Est. soon</div></div>
+      </div>
+      <div class="fan-card fan-4">
+        <div class="seal" style="background:var(--seal-graduation);">G</div>
+        <div><div class="fan-label">Class<br>of '26</div><div class="fan-sub">Graduation</div></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="controls">
+    <div class="tabs" id="tabs"></div>
+    <div class="search">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchInput" placeholder="Search your invitations…">
+    </div>
+  </div>
+
+  <div class="gallery" id="gallery"></div>
+
+  <footer>filed with care, one card at a time</footer>
+</div>
+
+<!-- Add / Edit modal -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3 id="modalTitle">New invitation</h3>
+    <div class="modal-sub">fill in the card</div>
+    <form id="inviteForm">
+      <input type="hidden" id="inviteId">
+      <div class="field">
+        <label for="fieldTitle">Title</label>
+        <input type="text" id="fieldTitle" placeholder="Sarah &amp; Tom's Wedding" required>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="fieldOccasion">Occasion</label>
+          <select id="fieldOccasion"></select>
+        </div>
+        <div class="field">
+          <label for="fieldDate">Event date</label>
+          <input type="date" id="fieldDate">
+        </div>
+      </div>
+      <div class="field" id="customOccasionField" style="display:none;">
+        <label for="fieldCustomOccasion">Occasion name</label>
+        <input type="text" id="fieldCustomOccasion" placeholder="Housewarming">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="fieldPrice">Price (PHP)</label>
+          <input type="number" id="fieldPrice" placeholder="750" min="0" step="0.01" required>
+        </div>
+        <div class="field">
+          <label for="fieldBuyLink">Payment link <span style="text-transform:none;font-weight:400;">(optional)</span></label>
+          <input type="url" id="fieldBuyLink" placeholder="https://gumroad.com/…">
+        </div>
+      </div>
+      <div class="field">
+        <label for="fieldLink">Preview link <span style="text-transform:none;font-weight:400;">(optional)</span></label>
+        <input type="url" id="fieldLink" placeholder="https://…">
+      </div>
+      <div class="field">
+        <label>Cover image</label>
+        <div class="file-row">
+          <div class="file-preview" id="filePreview">＋</div>
+          <button type="button" class="file-btn" id="fileTrigger">Choose image</button>
+          <button type="button" class="file-btn" id="fileClear" style="display:none;">Remove</button>
+          <input type="file" id="fileInput" accept="image/*" style="display:none;">
+        </div>
+        <div class="hint">Optional — leave blank for a plain monogram card.</div>
+      </div>
+      <div class="field">
+        <label>Sample video <span style="text-transform:none;font-weight:400;">(optional)</span></label>
+        <div class="file-row">
+          <button type="button" class="file-btn" id="videoTrigger">Choose video</button>
+          <button type="button" class="file-btn" id="videoClear" style="display:none;">Remove</button>
+          <input type="file" id="videoInput" accept="video/*" style="display:none;">
+          <span class="hint" id="videoStatus" style="margin:0;"></span>
+        </div>
+        <div class="hint">A short clip showing the invitation in action. Max 20MB, uploads to Supabase Storage.</div>
+      </div>
+      <div class="field">
+        <label for="fieldNote">Note</label>
+        <textarea id="fieldNote" placeholder="Anything you want to remember about this one…"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="modal-btn cancel" id="cancelBtn">Cancel</button>
+        <button type="submit" class="modal-btn save" id="saveBtn">Save card</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Orders modal -->
+<div class="overlay" id="ordersOverlay">
+  <div class="modal wide">
+    <h3>Orders</h3>
+    <div class="modal-sub">requests submitted from the "Order now" button</div>
+    <div class="orders-list" id="ordersList"></div>
+    <div class="modal-actions">
+      <button type="button" class="modal-btn cancel" id="closeOrdersBtn">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+</div>
+
+<script>
+/* ============================================================
+   CONFIG — fill these in before deploying (see README.md)
+   ============================================================ */
+const SUPABASE_URL = "https://yldgzhywfjvqxctmsvdy.supabase.co";       // e.g. https://xxxxx.supabase.co
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlsZGd6aHl3Zmp2cXhjdG1zdmR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2MTkxODksImV4cCI6MjEwMDE5NTE4OX0.ueBO8oZ0IQDJRZrw2rAMO4Tz5Czrn8WKppwknnO8yRg";
+/* ============================================================ */
+
+(function(){
+  // ---------- setup check ----------
+  if(SUPABASE_URL.includes('YOUR_SUPABASE_URL') || SUPABASE_ANON_KEY.includes('YOUR_SUPABASE_ANON_KEY')){
+    document.body.innerHTML = `<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#000;color:#f5f5f5;font-family:Inter,sans-serif;padding:40px;text-align:center;">
+      <div style="max-width:480px;">
+        <h1 style="font-size:20px;margin-bottom:12px;">Almost there</h1>
+        <p style="color:#9e9e9e;font-size:14px;line-height:1.6;">This page needs your Supabase project URL and anon key before it will work. Open this file, find the CONFIG section near the top of the script, and fill in <code>SUPABASE_URL</code> and <code>SUPABASE_ANON_KEY</code>. See README.md for step-by-step instructions.</p>
+      </div>
+    </div>`;
+    return;
+  }
+
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const OCCASIONS = [
+    {key:'wedding', label:'Wedding', seal:'var(--seal-wedding)', mono:'W'},
+    {key:'birthday', label:'Birthday', seal:'var(--seal-birthday)', mono:'B'},
+    {key:'babyshower', label:'Baby Shower', seal:'var(--seal-babyshower)', mono:'S'},
+    {key:'graduation', label:'Graduation', seal:'var(--seal-graduation)', mono:'G'},
+    {key:'anniversary', label:'Anniversary', seal:'var(--seal-anniversary)', mono:'A'},
+    {key:'engagement', label:'Engagement', seal:'var(--seal-engagement)', mono:'E'},
+    {key:'holiday', label:'Holiday', seal:'var(--seal-holiday)', mono:'H'},
+    {key:'retirement', label:'Retirement', seal:'var(--seal-retirement)', mono:'R'},
+    {key:'other', label:'Other', seal:'var(--seal-other)', mono:'✦'}
+  ];
+  const occMap = Object.fromEntries(OCCASIONS.map(o=>[o.key,o]));
+
+  let invites = [];
+  let activeTab = 'all';
+  let searchTerm = '';
+  let pendingCoverImage = null; // base64 string while editing in modal
+  let pendingVideoUrl = null; // uploaded video public URL while editing in modal
+
+  const galleryEl = document.getElementById('gallery');
+  const tabsEl = document.getElementById('tabs');
+  const overlayEl = document.getElementById('overlay');
+  const toastEl = document.getElementById('toast');
+  const heroStatEl = document.getElementById('heroStat');
+
+  // ---------- storage ----------
+  function rowToInvite(row){
+    return {
+      id: row.id, title: row.title, occasion: row.occasion, customOccasion: row.custom_occasion || '',
+      eventDate: row.event_date, link: row.link, price: row.price, buyLink: row.buy_link,
+      note: row.note, coverImage: row.cover_image, videoUrl: row.video_url,
+      createdAt: row.created_at ? new Date(row.created_at).getTime() : 0
+    };
+  }
+  async function loadData(){
+    const { data, error } = await sb.from('invitations').select('*').order('created_at', { ascending: false });
+    if(error){ showToast('Could not load invitations'); console.error(error); invites = []; }
+    else invites = (data || []).map(rowToInvite);
+    render();
+  }
+
+  function showToast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(()=>toastEl.classList.remove('show'), 2400);
+  }
+
+  // ---------- tabs ----------
+  function renderTabs(){
+    const counts = {};
+    invites.forEach(inv => counts[inv.occasion] = (counts[inv.occasion]||0)+1);
+    let html = `<button class="tab ${activeTab==='all'?'active':''}" data-tab="all">All (${invites.length})</button>`;
+    OCCASIONS.forEach(o=>{
+      const c = counts[o.key]||0;
+      html += `<button class="tab ${activeTab===o.key?'active':''}" data-tab="${o.key}">${escapeHtml(o.label)} (${c})</button>`;
+    });
+    tabsEl.innerHTML = html;
+    tabsEl.querySelectorAll('.tab').forEach(t=>{
+      t.addEventListener('click', ()=>{ activeTab = t.dataset.tab; render(); });
+    });
+  }
+
+  // ---------- gallery ----------
+  function occasionLabel(inv){
+    if(inv.occasion === 'other' && inv.customOccasion) return inv.customOccasion;
+    return occMap[inv.occasion] ? occMap[inv.occasion].label : 'Other';
+  }
+  function formatDate(d){
+    if(!d) return '';
+    const dt = new Date(d + 'T00:00:00');
+    if(isNaN(dt)) return '';
+    return dt.toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'});
+  }
+
+  function render(){
+    renderTabs();
+    let list = invites.slice().sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
+    if(activeTab !== 'all') list = list.filter(i => i.occasion === activeTab);
+    if(searchTerm){
+      const q = searchTerm.toLowerCase();
+      list = list.filter(i => (i.title||'').toLowerCase().includes(q) || (i.note||'').toLowerCase().includes(q));
+    }
+
+    const occCount = new Set(invites.map(i=>i.occasion)).size;
+    heroStatEl.innerHTML = `<b>${invites.length}</b> saved · <b>${occCount}</b> occasion${occCount===1?'':'s'}`;
+
+    if(list.length === 0){
+      let heading, sub;
+      if(invites.length === 0){
+        heading = 'Your drawer is empty';
+        sub = 'Use the "+ New invitation" button above to add your first one.';
+      } else if(searchTerm){
+        heading = 'No matches';
+        sub = `Nothing found for "${escapeHtml(searchTerm)}".`;
+      } else {
+        heading = `No ${escapeHtml(occMap[activeTab] ? occMap[activeTab].label.toLowerCase() : 'matching')} invitations yet`;
+        sub = 'Add one to fill this tab.';
+      }
+      galleryEl.innerHTML = `<div class="empty"><h3>${heading}</h3><p>${sub}</p></div>`;
+      return;
+    }
+
+    galleryEl.innerHTML = list.map(cardHtml).join('');
+    list.forEach(inv=>{
+      const card = galleryEl.querySelector(`[data-id="${inv.id}"]`);
+      card.querySelector('.edit-btn').addEventListener('click', ()=>openModal(inv.id));
+      card.querySelector('.delete-btn').addEventListener('click', ()=>deleteInvite(inv.id));
+    });
+  }
+
+  function formatPrice(p){
+    const n = Number(p);
+    if(isNaN(n)) return '';
+    return '₱' + n.toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }
+
+  function cardHtml(inv){
+    const occ = occMap[inv.occasion] || occMap.other;
+    const cover = inv.coverImage
+      ? `<img src="${inv.coverImage}" alt="">`
+      : `<div class="monogram">${escapeHtml((inv.title||'?').trim().charAt(0).toUpperCase())}</div>`;
+    return `
+    <div class="card" data-id="${inv.id}">
+      <div class="card-cover">
+        ${cover}
+        ${inv.price != null ? `<div class="price-badge">${formatPrice(inv.price)}</div>` : ''}
+        <div class="seal-badge" style="background:${occ.seal};">${occ.mono}</div>
+        ${inv.videoUrl ? `<a href="${escapeAttr(inv.videoUrl)}" target="_blank" rel="noopener noreferrer" class="video-badge" title="Watch sample video" aria-label="Watch sample video"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg> Video</a>` : ''}
+      </div>
+      <div class="card-body">
+        <div class="card-title">${escapeHtml(inv.title)}</div>
+        <div class="card-meta">${escapeHtml(occasionLabel(inv))}${inv.eventDate ? ' · ' + formatDate(inv.eventDate) : ''}</div>
+        ${inv.note ? `<div class="card-note">${escapeHtml(inv.note)}</div>` : ''}
+      </div>
+      <div class="card-actions">
+        <div style="display:flex;gap:10px;align-items:center;">
+          ${inv.buyLink ? `<a class="open-link" href="${escapeAttr(inv.buyLink)}" target="_blank" rel="noopener noreferrer">Payment link ↗</a>` : `<span class="hint" style="margin:0;">No payment link</span>`}
+          ${inv.link ? `<a href="${escapeAttr(inv.link)}" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:#9e9e9e;">Preview</a>` : ''}
+        </div>
+        <div>
+          <button class="icon-btn edit-btn" title="Edit" aria-label="Edit">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          </button>
+          <button class="icon-btn delete-btn" title="Delete" aria-label="Delete">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function escapeHtml(s){
+    return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+  function escapeAttr(s){ return escapeHtml(s); }
+
+  // ---------- delete ----------
+  async function deleteInvite(id){
+    const inv = invites.find(i=>i.id===id);
+    if(!inv) return;
+    if(!confirm(`Delete "${inv.title}"? This can't be undone.`)) return;
+    const { error } = await sb.from('invitations').delete().eq('id', id);
+    if(error){ showToast('Could not delete'); console.error(error); return; }
+    invites = invites.filter(i=>i.id!==id);
+    render();
+    showToast('Invitation deleted');
+  }
+
+  // ---------- modal ----------
+  const occasionSelect = document.getElementById('fieldOccasion');
+  occasionSelect.innerHTML = OCCASIONS.map(o=>`<option value="${o.key}">${escapeHtml(o.label)}</option>`).join('');
+  occasionSelect.addEventListener('change', ()=>{
+    document.getElementById('customOccasionField').style.display = occasionSelect.value === 'other' ? 'block' : 'none';
+  });
+
+  function openModal(id){
+    const editing = !!id;
+    document.getElementById('modalTitle').textContent = editing ? 'Edit invitation' : 'New invitation';
+    const inv = editing ? invites.find(i=>i.id===id) : null;
+
+    document.getElementById('inviteId').value = id || '';
+    document.getElementById('fieldTitle').value = inv ? inv.title : '';
+    occasionSelect.value = inv ? inv.occasion : OCCASIONS[0].key;
+    document.getElementById('customOccasionField').style.display = occasionSelect.value === 'other' ? 'block' : 'none';
+    document.getElementById('fieldCustomOccasion').value = inv ? (inv.customOccasion||'') : '';
+    document.getElementById('fieldDate').value = inv ? (inv.eventDate||'') : '';
+    document.getElementById('fieldPrice').value = inv && inv.price != null ? inv.price : '';
+    document.getElementById('fieldBuyLink').value = inv ? (inv.buyLink||'') : '';
+    document.getElementById('fieldLink').value = inv ? (inv.link||'') : '';
+    document.getElementById('fieldNote').value = inv ? (inv.note||'') : '';
+
+    pendingCoverImage = inv ? (inv.coverImage || null) : null;
+    updateFilePreview();
+    pendingVideoUrl = inv ? (inv.videoUrl || null) : null;
+    updateVideoStatus();
+
+    overlayEl.classList.add('show');
+    document.getElementById('fieldTitle').focus();
+  }
+  function closeModal(){
+    overlayEl.classList.remove('show');
+    document.getElementById('inviteForm').reset();
+    pendingCoverImage = null;
+    pendingVideoUrl = null;
+  }
+  document.getElementById('openAddBtn').addEventListener('click', ()=>openModal());
+  document.getElementById('cancelBtn').addEventListener('click', closeModal);
+  overlayEl.addEventListener('click', (e)=>{ if(e.target === overlayEl) closeModal(); });
+  document.addEventListener('keydown', (e)=>{
+    if(e.key !== 'Escape') return;
+    if(overlayEl.classList.contains('show')) closeModal();
+    if(ordersOverlayEl.classList.contains('show')) ordersOverlayEl.classList.remove('show');
+  });
+
+  // ---------- file / image handling ----------
+  const filePreviewEl = document.getElementById('filePreview');
+  const fileInput = document.getElementById('fileInput');
+  document.getElementById('fileTrigger').addEventListener('click', ()=>fileInput.click());
+  document.getElementById('fileClear').addEventListener('click', ()=>{
+    pendingCoverImage = null;
+    fileInput.value = '';
+    updateFilePreview();
+  });
+
+  function updateFilePreview(){
+    const clearBtn = document.getElementById('fileClear');
+    if(pendingCoverImage){
+      filePreviewEl.innerHTML = `<img src="${pendingCoverImage}" alt="">`;
+      clearBtn.style.display = 'inline-block';
+    } else {
+      filePreviewEl.innerHTML = '＋';
+      clearBtn.style.display = 'none';
+    }
+  }
+
+  fileInput.addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev)=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const maxW = 640;
+        const scale = Math.min(1, maxW / img.width);
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        pendingCoverImage = canvas.toDataURL('image/jpeg', 0.78);
+        updateFilePreview();
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // ---------- video upload (Supabase Storage) ----------
+  const videoInput = document.getElementById('videoInput');
+  const videoStatusEl = document.getElementById('videoStatus');
+  const videoClearBtn = document.getElementById('videoClear');
+  document.getElementById('videoTrigger').addEventListener('click', ()=>videoInput.click());
+  videoClearBtn.addEventListener('click', ()=>{
+    pendingVideoUrl = null;
+    videoInput.value = '';
+    updateVideoStatus();
+  });
+
+  function updateVideoStatus(){
+    if(pendingVideoUrl){
+      videoStatusEl.textContent = 'Video attached ✓';
+      videoClearBtn.style.display = 'inline-block';
+    } else {
+      videoStatusEl.textContent = '';
+      videoClearBtn.style.display = 'none';
+    }
+  }
+
+  videoInput.addEventListener('change', async (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const maxBytes = 20 * 1024 * 1024;
+    if(file.size > maxBytes){
+      showToast('Video is too large — 20MB max');
+      videoInput.value = '';
+      return;
+    }
+    videoStatusEl.textContent = 'Uploading…';
+    const uniqueId = crypto.randomUUID ? crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(36).slice(2));
+    const path = `${uniqueId}-${file.name}`.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const { error: uploadError } = await sb.storage.from('invitation-videos').upload(path, file);
+    if(uploadError){
+      showToast("Couldn't upload video — try again");
+      console.error(uploadError);
+      videoStatusEl.textContent = '';
+      videoInput.value = '';
+      return;
+    }
+    const { data: urlData } = sb.storage.from('invitation-videos').getPublicUrl(path);
+    pendingVideoUrl = urlData.publicUrl;
+    updateVideoStatus();
+  });
+
+  // ---------- form submit ----------
+  document.getElementById('inviteForm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const id = document.getElementById('inviteId').value;
+    const title = document.getElementById('fieldTitle').value.trim();
+    const priceRaw = document.getElementById('fieldPrice').value;
+    const buyLink = document.getElementById('fieldBuyLink').value.trim();
+    const link = document.getElementById('fieldLink').value.trim();
+    if(!title || priceRaw === ''){ showToast('Title and price are required'); return; }
+
+    const payload = {
+      title,
+      occasion: occasionSelect.value,
+      custom_occasion: document.getElementById('fieldCustomOccasion').value.trim() || null,
+      event_date: document.getElementById('fieldDate').value || null,
+      price: Number(priceRaw),
+      buy_link: buyLink || null,
+      link: link || null,
+      note: document.getElementById('fieldNote').value.trim() || null,
+      cover_image: pendingCoverImage,
+      video_url: pendingVideoUrl
+    };
+
+    if(id){
+      const { error } = await sb.from('invitations').update(payload).eq('id', id);
+      if(error){ showToast('Could not save changes'); console.error(error); return; }
+      const idx = invites.findIndex(i=>i.id===id);
+      if(idx > -1){
+        invites[idx] = { ...invites[idx], title, occasion: payload.occasion, customOccasion: payload.custom_occasion || '',
+          eventDate: payload.event_date, price: payload.price, buyLink: payload.buy_link, link: payload.link,
+          note: payload.note, coverImage: payload.cover_image, videoUrl: payload.video_url };
+      }
+      showToast('Invitation updated');
+    } else {
+      const { data, error } = await sb.from('invitations').insert(payload).select().single();
+      if(error){ showToast('Could not save'); console.error(error); return; }
+      invites.push(rowToInvite(data));
+      showToast('Invitation added');
+    }
+    closeModal();
+    render();
+  });
+
+  // ---------- search ----------
+  document.getElementById('searchInput').addEventListener('input', (e)=>{
+    searchTerm = e.target.value.trim();
+    render();
+  });
+
+  // ---------- orders ----------
+  const ordersOverlayEl = document.getElementById('ordersOverlay');
+  const ordersListEl = document.getElementById('ordersList');
+  const ordersBadgeEl = document.getElementById('ordersBadge');
+  let orders = [];
+
+  function formatOrderDate(iso){
+    if(!iso) return '';
+    const dt = new Date(iso);
+    if(isNaN(dt)) return '';
+    return dt.toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'}) + ' · ' +
+      dt.toLocaleTimeString(undefined, {hour:'numeric', minute:'2-digit'});
+  }
+
+  async function refreshOrdersBadge(){
+    const { data, error } = await sb.from('orders').select('id', { count: 'exact' }).eq('status', 'new');
+    if(error){ console.error(error); return; }
+    const count = data ? data.length : 0;
+    if(count > 0){
+      ordersBadgeEl.textContent = count > 99 ? '99+' : String(count);
+      ordersBadgeEl.style.display = 'flex';
+    } else {
+      ordersBadgeEl.style.display = 'none';
+    }
+  }
+
+  async function loadOrders(){
+    const { data, error } = await sb.from('orders').select('*').order('created_at', { ascending: false });
+    if(error){ showToast('Could not load orders'); console.error(error); orders = []; }
+    else orders = data || [];
+    renderOrders();
+  }
+
+  function renderOrders(){
+    if(orders.length === 0){
+      ordersListEl.innerHTML = `<p class="hint">No orders yet — they'll show up here as soon as someone submits the order form.</p>`;
+      return;
+    }
+    ordersListEl.innerHTML = orders.map(o => `
+      <div class="order-row" data-id="${o.id}">
+        <div class="order-row-top">
+          <div>
+            <div class="order-row-inv">${escapeHtml(o.invitation_title || 'Untitled invitation')}</div>
+            <div class="order-row-price">
+              ${o.invitation_occasion ? escapeHtml(o.invitation_occasion) : ''}${o.invitation_occasion && o.invitation_price != null ? ' · ' : ''}${o.invitation_price != null ? formatPrice(o.invitation_price) : ''}
+            </div>
+            ${o.invitation_link ? `<a href="${escapeHtml(o.invitation_link)}" target="_blank" rel="noopener noreferrer" style="font-size:11.5px;font-weight:700;color:var(--gold);text-decoration:underline;">View template ↗</a>` : ''}
+          </div>
+          <div class="order-row-date">${formatOrderDate(o.created_at)}</div>
+        </div>
+        <div class="order-row-contact">
+          ${escapeHtml(o.customer_name)}<br>
+          <a href="mailto:${escapeHtml(o.customer_email)}">${escapeHtml(o.customer_email)}</a>
+          ${o.customer_phone ? ' · ' + escapeHtml(o.customer_phone) : ''}
+          ${o.alt_contact ? `<br><span style="color:#9e9e9e;">Alt contact:</span> ${escapeHtml(o.alt_contact)}` : ''}
+        </div>
+        ${o.message ? `<div class="order-row-message">${escapeHtml(o.message)}</div>` : ''}
+        <div class="order-row-actions">
+          <select class="order-status-select" data-status-id="${o.id}">
+            <option value="new" ${o.status==='new'?'selected':''}>New</option>
+            <option value="contacted" ${o.status==='contacted'?'selected':''}>Contacted</option>
+            <option value="completed" ${o.status==='completed'?'selected':''}>Completed</option>
+          </select>
+          <button class="order-delete-btn" data-delete-order="${o.id}" title="Delete" aria-label="Delete order">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          </button>
+        </div>
+      </div>
+    `).join('');
+
+    ordersListEl.querySelectorAll('[data-status-id]').forEach(sel=>{
+      sel.addEventListener('change', async ()=>{
+        const id = sel.dataset.statusId;
+        const { error } = await sb.from('orders').update({ status: sel.value }).eq('id', id);
+        if(error){ showToast('Could not update status'); console.error(error); return; }
+        const ord = orders.find(o=>o.id===id);
+        if(ord) ord.status = sel.value;
+        refreshOrdersBadge();
+      });
+    });
+    ordersListEl.querySelectorAll('[data-delete-order]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        if(!confirm('Delete this order? This cannot be undone.')) return;
+        const id = btn.dataset.deleteOrder;
+        const { error } = await sb.from('orders').delete().eq('id', id);
+        if(error){ showToast('Could not delete order'); console.error(error); return; }
+        orders = orders.filter(o=>o.id!==id);
+        renderOrders();
+        refreshOrdersBadge();
+        showToast('Order deleted');
+      });
+    });
+  }
+
+  document.getElementById('openOrdersBtn').addEventListener('click', ()=>{
+    ordersOverlayEl.classList.add('show');
+    loadOrders();
+  });
+  document.getElementById('closeOrdersBtn').addEventListener('click', ()=>{
+    ordersOverlayEl.classList.remove('show');
+  });
+  ordersOverlayEl.addEventListener('click', (e)=>{ if(e.target === ordersOverlayEl) ordersOverlayEl.classList.remove('show'); });
+
+  function initApp(){
+    refreshOrdersBadge();
+    loadData();
+  }
+
+  // ---------- auth ----------
+  const loginScreenEl = document.getElementById('loginScreen');
+  const adminAppEl = document.getElementById('adminApp');
+  const loginErrorEl = document.getElementById('loginError');
+
+  function showAdminApp(){
+    loginScreenEl.style.display = 'none';
+    adminAppEl.style.display = 'block';
+    initApp();
+  }
+  function showLoginScreen(){
+    adminAppEl.style.display = 'none';
+    loginScreenEl.style.display = 'flex';
+  }
+
+  document.getElementById('loginForm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    loginErrorEl.textContent = '';
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const submitBtn = document.getElementById('loginSubmitBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Logging in…';
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Log in';
+    if(error){
+      loginErrorEl.textContent = error.message || 'Incorrect email or password.';
+      console.error('Login error:', error);
+      return;
+    }
+    showAdminApp();
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async ()=>{
+    await sb.auth.signOut();
+    showLoginScreen();
+  });
+
+  (async function checkExistingSession(){
+    const { data } = await sb.auth.getSession();
+    if(data && data.session){
+      showAdminApp();
+    } else {
+      showLoginScreen();
+    }
+  })();
+})();
+</script>
+</body>
+</html>
